@@ -57,7 +57,7 @@ public class ExtraSkills
         {
             //Generate default file
             LOGGER.warn("No skills.json found! Generating default file...");
-            SkillDto skill = new SkillDto("example", "test", "minecraft:stone");
+            SkillDto skill = new SkillDto("example", "Example", "stone");
             try(JsonWriter writer = GSON.newJsonWriter(new FileWriter(jsonFile)))
             {
                 writer.jsonValue(GSON.toJson(ImmutableSet.of(skill)));
