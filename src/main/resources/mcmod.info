@@ -1,0 +1,24 @@
+{
+    "modListVersion": 2,
+    "modList":
+    [
+        {
+          "modid": "extraskills",
+          "name": "ExtraSkills",
+          "description": "A mod which allows you to add new skills to Reskillable",
+          "version": "${version}",
+          "mcversion": "${mcversion}",
+          "url": "",
+          "updateUrl": "",
+          "authorList": ["bright_spark"],
+          "credits": "",
+          "logoFile": "",
+          "screenshots": [],
+          "parent": "",
+          "dependants": [],
+          "dependencies": ["reskillable"],
+          "requiredMods": ["reskillable"],
+          "useDependencyInformation": true
+        }
+    ]
+}
