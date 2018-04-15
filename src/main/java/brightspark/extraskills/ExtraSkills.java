@@ -83,16 +83,28 @@ public class ExtraSkills
             }
 
             if(SKILLS_DTO == null || SKILLS_DTO.size() == 0)
-                LOGGER.warn("No skill read from JSON file!");
+                LOGGER.warn("No skills read from JSON file!");
             else
             {
                 //Remove example skill
-                SKILLS_DTO.removeIf(skill -> skill.name.equalsIgnoreCase("example"));
+                SKILLS_DTO.removeIf(skill -> skill.name == null || skill.name.equalsIgnoreCase("example"));
 
                 LOGGER.info("Read " + SKILLS_DTO.size() + " extra skills from JSON file");
 
                 //Convert to Skills
-                SKILLS_DTO.forEach(skillDto -> SKILLS.add(new BasicSkill(skillDto.name, skillDto.background)));
+                SKILLS_DTO.forEach(skillDto -> {
+                    if(skillDto.localName == null)
+                    {
+                        LOGGER.warn("The extra skill %s has no localName! Falling back to the name.", skillDto.name);
+                        skillDto.localName = skillDto.name;
+                    }
+                    if(skillDto.background == null)
+                    {
+                        LOGGER.warn("The extra skill %s has no background! Falling back to \"stone\".", skillDto.name);
+                        skillDto.background = "stone";
+                    }
+                    SKILLS.add(new BasicSkill(skillDto.name, skillDto.background));
+                });
             }
         }
     }
@@ -100,6 +112,8 @@ public class ExtraSkills
     @EventHandler
     public static void init(FMLInitializationEvent event)
     {
+        if(SKILLS_DTO == null || SKILLS_DTO.size() == 0) return;
+
         //Read icon textures
         String[] iconsNames = MOD_CONFIG_DIR.list((dir, name) -> name.endsWith(".png"));
         if(iconsNames != null && iconsNames.length > 0)
