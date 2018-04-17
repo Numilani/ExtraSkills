@@ -12,15 +12,15 @@ import com.google.gson.stream.JsonWriter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.client.renderer.texture.TextureManager;
-import net.minecraft.client.resources.IReloadableResourceManager;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.translation.LanguageMap;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventHandler;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 import net.minecraftforge.registries.IForgeRegistry;
 import org.apache.logging.log4j.Logger;
 
@@ -36,7 +36,7 @@ public class ExtraSkills
     static final String MODID = "extraskills";
     static final String NAME = "ExtraSkills";
     static final String VERSION = "@VERSION@";
-    static final String DEPENDENCIES = "required-after:reskillable";
+    static final String DEPENDENCIES = "required:reskillable";
 
     private static Logger LOGGER;
     private static File MOD_CONFIG_DIR;
@@ -103,16 +103,23 @@ public class ExtraSkills
                         LOGGER.warn("The extra skill %s has no background! Falling back to \"stone\".", skillDto.name);
                         skillDto.background = "stone";
                     }
-                    SKILLS.add(new BasicSkill(skillDto.name, skillDto.background));
+                    BasicSkill skill = new BasicSkill(skillDto.name, skillDto.localName, skillDto.background);
+                    if(SKILLS.add(skill))
+                        LOGGER.info("Added new skill: " + skill);
+                    else
+                        LOGGER.warn("Duplicate skill not added: " + skill);
                 });
+
+                LOGGER.info("Created " + SKILLS.size() + " skills successfully");
             }
         }
     }
 
+    @SideOnly(Side.CLIENT)
     @EventHandler
     public static void init(FMLInitializationEvent event)
     {
-        if(SKILLS_DTO == null || SKILLS_DTO.size() == 0) return;
+        if(!event.getSide().isClient()) return;
 
         //Read icon textures
         String[] iconsNames = MOD_CONFIG_DIR.list((dir, name) -> name.endsWith(".png"));
@@ -139,19 +146,9 @@ public class ExtraSkills
                 }
             });
         }
-
-        //Add localisation
-        String langPrefix = "skillable.skill." + MODID + ".";
-        ((IReloadableResourceManager) Minecraft.getMinecraft().getResourceManager()).registerReloadListener(resourceManager -> {
-            //We're going to create a "fake" input stream from our Json file for localisations and inject them
-            StringBuilder sb = new StringBuilder();
-            SKILLS_DTO.forEach(skill -> sb.append(langPrefix).append(skill.name).append("=").append(skill.localName).append("\n"));
-            InputStream inputStream = new ByteArrayInputStream(sb.toString().getBytes());
-            LanguageMap.inject(inputStream);
-        });
     }
 
-    @Mod.EventBusSubscriber
+    @Mod.EventBusSubscriber(modid = MODID)
     public static class RegistryHandler
     {
         @SubscribeEvent
